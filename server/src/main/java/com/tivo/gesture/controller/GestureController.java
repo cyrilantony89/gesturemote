@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tivo.gesture.controller.model.ChannelInput;
 import com.tivo.gesture.controller.model.GestureInput;
 import com.tivo.gesture.controller.model.Response;
 import com.tivo.gesture.service.GestureService;
@@ -44,6 +45,14 @@ public class GestureController {
 		return changechannel;
 	}
 
+	@ApiOperation(value = "Get channel", response = Response.class)
+	@RequestMapping(value = "/getchannel", method = RequestMethod.POST)
+	@CrossOrigin(origins="*")
+	public Response getchannel(@RequestBody ChannelInput channelIp) {
+		log.info("/get channel " + channelIp.toString());
+		Response changechannel = gestureService.getchannel(channelIp);
+		return changechannel;
+	}
 	// @RequestMapping(value = "/show/{id}", method= RequestMethod.GET)
 	// public Product showProduct(@PathVariable Integer id, Model model){
 	// Product product = productService.getProductById(id);
