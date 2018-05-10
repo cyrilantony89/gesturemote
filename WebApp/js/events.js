@@ -116,8 +116,7 @@ function handGrabHandler(grabStrength){
   // console.log(grabStrength);
   if(grabStrength == 1) {
     if(!Validator.isHistoryEmpty() && Validator.getHistoryElement(0)==0 && Validator.historySamplesLength() > 1){
-      console.log("back to pgd");
-      hideVideoPlayer();
+      console.log("play channel");
     }
     Validator.resetHistorySample();
     Validator.addHistorySample(1);
@@ -125,8 +124,8 @@ function handGrabHandler(grabStrength){
     // console.log("HAND iS CLOSED");
   } else if (grabStrength == 0) {
     if(!Validator.isHistoryEmpty() && Validator.getHistoryElement(0)==1 && Validator.historySamplesLength() > 1){
-      console.log("play channel");
-
+      console.log("back to pgd");
+      hideVideoPlayer();
     }
     Validator.resetHistorySample();
     Validator.addHistorySample(0);
@@ -161,10 +160,7 @@ function updateVolume(direction){
     console.log("UPDATE VOLUME FOR : "+direction);
   }
 }
-function reset(){
-  Validator.resetLeftRightUpOrDown();             //reSetting Left or Right to 0
-  Validator.setNewGesture(true);            //Now upcoming gestures will be new gesture
-}
+
 function timerfunc(){
   var direction = Validator.getLeftRightUpOrDown();
   if(direction == "left" || direction == "right"){
@@ -173,7 +169,9 @@ function timerfunc(){
   else {
     updateVolume(direction);
   }
-  setTimeout(reset,100);
+  //setTimeout(reset,500);
+  Validator.resetLeftRightUpOrDown();             //reSetting Left or Right to 0
+  Validator.setNewGesture(true);            //Now upcoming gestures will be new gesture
 }
 function swipeHandler(gesture){
   //Handles all swipe related events
@@ -187,7 +185,7 @@ function swipeHandler(gesture){
     //console.log(swipeDirection + " " + Math.floor(gesture.duration/1000000));
     if ( Validator.isNewGesture() ) {
       console.log("New Guesture");
-      setTimeout(timerfunc,100);   //millisceconds
+      setTimeout(timerfunc,500);   //millisceconds
       Validator.setNewGesture(false);     //all upcoming gestures will not be new until reset.
     }
     Validator.setLeftRightUpOrDown(swipeDirection);
