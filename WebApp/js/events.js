@@ -1,15 +1,12 @@
 console.log("Start events");
-//Setting up Leap Motion
-var options={enableGestures: true};
-var controller = Leap.loop(options, function(frame){
-  //... handle frame data
-});
+
 
 //Validator's getter and setters
 var Validator = (function(){
   var leftOrRight = 0;
   var upOrDown = 0;
   var newGesture = true;
+  var historySamples = [];
 
   var resetLeftRightUpOrDown = function(){
     leftOrRight = 0;
@@ -48,16 +45,95 @@ var Validator = (function(){
   var setNewGesture = function(value){
     newGesture = value;
   }
+
+  var addHistorySample = function(value){
+    historySamples.push(value);
+  }
+
+  var resetHistorySample = function(){
+    historySamples = [];
+  }
+
+  var isHistoryEmpty = function(){
+    if(historySamples.length == 0){
+      return true;
+    }
+    return false;
+  }
+
+  var historySamplesLength = function(){
+    return historySamples.length;
+  }
+
+  var getHistoryElement = function(index){
+    return historySamples[index];
+  }
+
   return {
     getLeftRightUpOrDown : getLeftRightUpOrDown,
     resetLeftRightUpOrDown : resetLeftRightUpOrDown,
     setLeftRightUpOrDown : setLeftRightUpOrDown,
     isNewGesture : isNewGesture,
-    setNewGesture : setNewGesture
+    setNewGesture : setNewGesture,
+    addHistorySample : addHistorySample,
+    resetHistorySample : resetHistorySample,
+    isHistoryEmpty : isHistoryEmpty,
+    historySamplesLength : historySamplesLength,
+    getHistoryElement : getHistoryElement
   }
 }());
 
+//Setting up Leap Motion
+var options={enableGestures: true};
+var controller = Leap.loop(options, function(frame){
+  //... handle frame data
+  if(frame.valid){
+    if(frame.gestures.length > 0){
+      Validator.resetHistorySample();
+      frame.gestures.forEach(function(gesture){
+        switch (gesture.type){
+                  case "swipe":
+                      swipeHandler(gesture);
+                      break;
+                  case "screenTap":
+                      tapHandler(gesture);
+                  case "keyTap":
+                      tapHandler(gesture);
+                      break;
+                  case "circle":
+                      //console.log("Circle Gesture");
+                      break;
+        }
+      });
+    } else if(frame.hands.length>0) {
+        var hand = frame.hands[0];
+        handGrabHandler(hand.grabStrength);
+    }
+  }
+});
 
+function handGrabHandler(grabStrength){
+  // console.log(grabStrength);
+  if(grabStrength == 1) {
+    if(!Validator.isHistoryEmpty() && Validator.getHistoryElement(0)==0 && Validator.historySamplesLength() > 1){
+      console.log("back to pgd");
+    }
+    Validator.resetHistorySample();
+    Validator.addHistorySample(1);
+
+    // console.log("HAND iS CLOSED");
+  } else if (grabStrength == 0) {
+    if(!Validator.isHistoryEmpty() && Validator.getHistoryElement(0)==1 && Validator.historySamplesLength() > 1){
+      console.log("play channel");
+    }
+    Validator.resetHistorySample();
+    Validator.addHistorySample(0);
+    // console.log("HAND iS OPEN");
+  } else {
+    Validator.addHistorySample(grabStrength);
+    console.log(" HAND MIDDLE");
+  }
+}
 
 function makeCall(swipeDirection){
   var server = "http://10.177.65.71:8080/server/changechannel";
@@ -86,10 +162,8 @@ function updateVolume(direction){
 
 function timerfunc(){
   var direction = Validator.getLeftRightUpOrDown();
-  if(direction == "left" ){
-    prevSlide();
-  }else if(direction == "right"){
-    nextSlide();
+  if(direction == "left" || direction == "right"){
+    makeCall(direction);     //makeCall for left or right direction
   }
   else {
     updateVolume(direction);
@@ -98,7 +172,7 @@ function timerfunc(){
   Validator.setNewGesture(true);            //Now upcoming gestures will be new gesture
 }
 function swipeHandler(gesture){
-
+  //Handles all swipe related events
     var isHorizontal = Math.abs(gesture.direction[0]) > Math.abs(gesture.direction[1]);
     if (isHorizontal) {
       swipeDirection = (gesture.direction[0] > 0) ?  "right" :  "left";
@@ -109,25 +183,35 @@ function swipeHandler(gesture){
     //console.log(swipeDirection + " " + Math.floor(gesture.duration/1000000));
     if ( Validator.isNewGesture() ) {
       console.log("New Guesture");
-      setTimeout(timerfunc,200);   //millisceconds
+      setTimeout(timerfunc,500);   //millisceconds
       Validator.setNewGesture(false);     //all upcoming gestures will not be new until reset.
     }
     Validator.setLeftRightUpOrDown(swipeDirection);
   //  console.log(gesture.duration);
 }
-controller.on("gesture", function(gesture){
-  switch (gesture.type){
-            case "swipe":
-                swipeHandler(gesture);
-                break;
-            case "circle":
-                //console.log("Circle Gesture");
-                break;
-            case "keyTap":
-                //console.log("Key Tap Gesture");
-                break;
-            case "screenTap":
-                //console.log("Screen Tap Gesture");
-                break;
-          }
-});
+
+function tapHandler(gesture){
+  //  if(!isOpened()){
+    console.log("tap called");
+    return;
+    //  }
+}
+
+
+//
+// controller.on("gesture", function(gesture){
+//   switch (gesture.type){
+//             case "swipe":
+//                 swipeHandler(gesture);
+//                 break;
+//             case "screenTap":
+//                 tapHandler(gesture);
+//             case "keyTap":
+//                 tapHandler(gesture);
+//                 break;
+//             case "circle":
+//                 circleHandler(gesture);
+//                 //console.log("Circle Gesture");
+//                 break;
+//           }
+// });
