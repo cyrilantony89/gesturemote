@@ -1,37 +1,65 @@
-$(".carousel-cell").click(function(event) {
-    //get video name
 
-    var videoName = $(this).find('h3')[0].innerText;
-    showVideoPlayer(videoName);
 
-});
+var channelHash = {
+   "BBC HD":"bbc",
+   "Sky Sports 4 HD":"skysports",
+   "Rajya Sabha TV":"rstv",
+   "Cartoon Network":"cn",
+   "Discovery HD":"discovery"
 
+};
 
 function nextSlide(){
-
+  $('.carousel').flickity().flickity('next');
 }
 
 function prevSlide(){
-
+  $('.carousel').flickity().flickity('previous');
 }
 
-var myVideo = document.getElementById("channel");
+function openChannel(){
+  var $carousel = $('.carousel').flickity();
+  // get instance
+  var flkty = $carousel.data('flickity');
+  var selectedIndex = flkty.selectedIndex;
+  var videoName = channelHash[$('.carousel-cell').find('h3')[selectedIndex].innerHTML];
+  showVideoPlayer(videoName);
+}
+
+
 
 //showVideoPlayer
 function showVideoPlayer(videoName) {
-  $("#main source").attr("src", "videos/" + videoName + ".mp4");
+  var sendData = {
+     "channelName" : videoName
+  };
+  $.ajax({
+     url: 'http://10.177.65.71:8080/server/getchannel',
+     type: 'POST',
+     contentType: "application/json; charset=utf-8",
+     data: JSON.stringify(sendData),
+     success: function(data) {
+       var myVideo = document.getElementById("channel");
+       $("#main source").attr("src", data.url);
+       myVideo.load();
+       myVideo.play();
+       myVideo.currentTime = data.seconds;
+       $(myVideo).show();
+       $("#main").css("z-index","100");
+       $("#main").addClass("animation");
+     },
+     error: function(err) {
+        console.log(err);
+     }
+   });
 
-  myVideo.load();
-  myVideo.play();
-  $(myVideo).show();
-  $("#main").css("z-index","100");
-  $("#main").addClass("animation");
 
 }
 
 
 //hideVideoPlayer
 function hideVideoPlayer() {
+  var myVideo = document.getElementById("channel");
   $("#main").css("z-index", "-100");
   myVideo.pause();
   $(myVideo).hide();

@@ -86,8 +86,10 @@ function updateVolume(direction){
 
 function timerfunc(){
   var direction = Validator.getLeftRightUpOrDown();
-  if(direction == "left" || direction == "right"){
-    makeCall(direction);     //makeCall for left or right direction
+  if(direction == "left" ){
+    prevSlide();
+  }else if(direction == "right"){
+    nextSlide();
   }
   else {
     updateVolume(direction);
@@ -107,7 +109,7 @@ function swipeHandler(gesture){
     //console.log(swipeDirection + " " + Math.floor(gesture.duration/1000000));
     if ( Validator.isNewGesture() ) {
       console.log("New Guesture");
-      setTimeout(timerfunc,500);   //millisceconds
+      setTimeout(timerfunc,200);   //millisceconds
       Validator.setNewGesture(false);     //all upcoming gestures will not be new until reset.
     }
     Validator.setLeftRightUpOrDown(swipeDirection);
