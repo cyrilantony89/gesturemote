@@ -8,31 +8,50 @@ var controller = Leap.loop(options, function(frame){
 //Validator's getter and setters
 var Validator = (function(){
   var leftOrRight = 0;
+  var upOrDown = 0;
   var newGesture = true;
-  var getLeftOrRight = function(){
-    return (leftOrRight<0) ? "left" : "right";
-  }
-  var resetLeftOrRight = function(){
+
+  var resetLeftRightUpOrDown = function(){
     leftOrRight = 0;
+    upOrDown = 0;
   }
-  var setLeftOrRight = function(gesture){
+
+  var setLeftRightUpOrDown = function(gesture){
     if(gesture == "left"){
       leftOrRight --;
     }
-    else{
+    else if(gesture == "right"){
       leftOrRight ++;
     }
+    else if (gesture == "up"){
+      upOrDown ++;
+    }
+    else{               //down
+      upOrDown --;
+    }
   }
+
+  var getLeftRightUpOrDown = function(){
+    // return (leftOrRight<0) ? "left" : "right";
+    if(Math.abs(leftOrRight) > Math.abs(upOrDown)){
+      return (leftOrRight<0) ? "left" : "right";
+    }
+    else{
+      return (upOrDown < 0 ) ? "down" : "up";
+    }
+  }
+
   var isNewGesture =function(){
       return newGesture;
   }
+
   var setNewGesture = function(value){
     newGesture = value;
   }
   return {
-    getLeftOrRight : getLeftOrRight,
-    resetLeftOrRight : resetLeftOrRight,
-    setLeftOrRight : setLeftOrRight,
+    getLeftRightUpOrDown : getLeftRightUpOrDown,
+    resetLeftRightUpOrDown : resetLeftRightUpOrDown,
+    setLeftRightUpOrDown : setLeftRightUpOrDown,
     isNewGesture : isNewGesture,
     setNewGesture : setNewGesture
   }
@@ -58,36 +77,40 @@ function makeCall(swipeDirection){
           console.error(error);
         }
       });
-
 }
+
+function updateVolume(direction){
+  //VIKAS TODO
+  console.log("UPDATE VOLUME FOR : "+direction);
+}
+
 function timerfunc(){
-  makeCall(Validator.getLeftOrRight());     //makeCall for left or right direction
-  Validator.resetLeftOrRight();             //reSetting Left or Right to 0
+  var direction = Validator.getLeftRightUpOrDown();
+  if(direction == "left" || direction == "right"){
+    makeCall(direction);     //makeCall for left or right direction
+  }
+  else {
+    updateVolume(direction);
+  }
+  Validator.resetLeftRightUpOrDown();             //reSetting Left or Right to 0
   Validator.setNewGesture(true);            //Now upcoming gestures will be new gesture
 }
 function swipeHandler(gesture){
 
     var isHorizontal = Math.abs(gesture.direction[0]) > Math.abs(gesture.direction[1]);
     if (isHorizontal) {
-      if (gesture.direction[0] > 0) {
-        swipeDirection = "right";
-      } else {
-        swipeDirection = "left";
-      }
+      swipeDirection = (gesture.direction[0] > 0) ?  "right" :  "left";
+
     } else {
-      if(gesture.direction[1] > 0){
-        swipeDirection = "up";
-      } else {
-          swipeDirection = "down";
-      }
+      swipeDirection = (gesture.direction[1] > 0) ? "up" : "down";
     }
     //console.log(swipeDirection + " " + Math.floor(gesture.duration/1000000));
-    if ( (swipeDirection == "right" || swipeDirection=="left") && Validator.isNewGesture() ) {
+    if ( Validator.isNewGesture() ) {
       console.log("New Guesture");
       setTimeout(timerfunc,500);   //millisceconds
       Validator.setNewGesture(false);     //all upcoming gestures will not be new until reset.
     }
-    Validator.setLeftOrRight(swipeDirection);
+    Validator.setLeftRightUpOrDown(swipeDirection);
   //  console.log(gesture.duration);
 }
 controller.on("gesture", function(gesture){
