@@ -96,12 +96,12 @@ var controller = Leap.loop(options, function(frame){
                       swipeHandler(gesture);
                       break;
                   case "screenTap":
-                      tapHandler(gesture);
+                      //circleHandler(gesture);
                   case "keyTap":
-                      tapHandler(gesture);
+                      //circleHandler(gesture);
                       break;
                   case "circle":
-                      //console.log("Circle Gesture");
+                      circleHandler(gesture);
                       break;
         }
       });
@@ -117,6 +117,7 @@ function handGrabHandler(grabStrength){
   if(grabStrength == 1) {
     if(!Validator.isHistoryEmpty() && Validator.getHistoryElement(0)==0 && Validator.historySamplesLength() > 1){
       console.log("back to pgd");
+      hideVideoPlayer();
     }
     Validator.resetHistorySample();
     Validator.addHistorySample(1);
@@ -125,41 +126,45 @@ function handGrabHandler(grabStrength){
   } else if (grabStrength == 0) {
     if(!Validator.isHistoryEmpty() && Validator.getHistoryElement(0)==1 && Validator.historySamplesLength() > 1){
       console.log("play channel");
+
     }
     Validator.resetHistorySample();
     Validator.addHistorySample(0);
     // console.log("HAND iS OPEN");
   } else {
     Validator.addHistorySample(grabStrength);
-    console.log(" HAND MIDDLE");
+    // console.log(" HAND MIDDLE");
   }
 }
 
 function makeCall(swipeDirection){
-  var server = "http://10.177.65.71:8080/server/changechannel";
-  var payload={
-    direction : swipeDirection
+  if(!isPlaying()){
+     if(swipeDirection=="left"){
+       nextSlide();
+     }else{
+       prevSlide();
+     }
+  }else{
+
   }
-  var call=$.ajax({
-        type: 'POST',
-        url: server,
-        data: JSON.stringify(payload),
-        contentType: "application/json; charset=utf-8",
-        dataType: 'json',
-        success: function(resultData) {
-           console.log(JSON.stringify(resultData));
-        },
-        error: function(error){
-          console.error(error);
-        }
-      });
+
 }
 
 function updateVolume(direction){
   //VIKAS TODO
-  console.log("UPDATE VOLUME FOR : "+direction);
+  if(isPlaying()){
+    if(direction == "up"){
+      volumeUp();
+    }else{
+      volumeDown();
+    }
+    console.log("UPDATE VOLUME FOR : "+direction);
+  }
 }
-
+function reset(){
+  Validator.resetLeftRightUpOrDown();             //reSetting Left or Right to 0
+  Validator.setNewGesture(true);            //Now upcoming gestures will be new gesture
+}
 function timerfunc(){
   var direction = Validator.getLeftRightUpOrDown();
   if(direction == "left" || direction == "right"){
@@ -168,8 +173,7 @@ function timerfunc(){
   else {
     updateVolume(direction);
   }
-  Validator.resetLeftRightUpOrDown();             //reSetting Left or Right to 0
-  Validator.setNewGesture(true);            //Now upcoming gestures will be new gesture
+  setTimeout(reset,100);
 }
 function swipeHandler(gesture){
   //Handles all swipe related events
@@ -183,35 +187,17 @@ function swipeHandler(gesture){
     //console.log(swipeDirection + " " + Math.floor(gesture.duration/1000000));
     if ( Validator.isNewGesture() ) {
       console.log("New Guesture");
-      setTimeout(timerfunc,500);   //millisceconds
+      setTimeout(timerfunc,100);   //millisceconds
       Validator.setNewGesture(false);     //all upcoming gestures will not be new until reset.
     }
     Validator.setLeftRightUpOrDown(swipeDirection);
   //  console.log(gesture.duration);
 }
 
-function tapHandler(gesture){
-  //  if(!isOpened()){
-    console.log("tap called");
+function circleHandler(gesture){
+    if(!isPlaying()){
+    console.log("circling");
+    openChannel();
     return;
-    //  }
+    }
 }
-
-
-//
-// controller.on("gesture", function(gesture){
-//   switch (gesture.type){
-//             case "swipe":
-//                 swipeHandler(gesture);
-//                 break;
-//             case "screenTap":
-//                 tapHandler(gesture);
-//             case "keyTap":
-//                 tapHandler(gesture);
-//                 break;
-//             case "circle":
-//                 circleHandler(gesture);
-//                 //console.log("Circle Gesture");
-//                 break;
-//           }
-// });

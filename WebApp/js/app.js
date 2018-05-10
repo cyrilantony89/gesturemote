@@ -8,6 +8,40 @@ var channelHash = {
    "Discovery HD":"discovery"
 
 };
+function showSnackbar(str,time) {
+    var x = document.getElementById("snackbar");
+    x.innerHTML = str;
+    x.className = "show";
+    setTimeout(function(){ x.className = x.className.replace("show", ""); }, time);
+}
+
+function volumeUp(){
+
+  var vid = document.getElementById("channel");
+  if(vid.volume <= 0.9){
+    vid.volume = (vid.volume + 0.1);
+  }else{
+    vid.volume = 1;
+  }
+  showSnackbar("Volume : "+Math.ceil(vid.volume*100)+"%" ,3000);
+
+}
+
+function volumeDown(){
+  var vid = document.getElementById("channel");
+  console.log(vid.volume);
+  if(vid.volume >= 0.1){
+    vid.volume = (vid.volume - 0.1);
+  }else{
+    vid.volume = 0.0;
+  }
+  showSnackbar("Volume : "+Math.ceil(vid.volume*100)+"%" ,3000);
+}
+
+function isPlaying(){
+  var myVideo = document.getElementById("channel");
+  return !myVideo.hidden;
+}
 
 function nextSlide(){
   $('.carousel').flickity().flickity('next');
@@ -30,9 +64,11 @@ function openChannel(){
 
 //showVideoPlayer
 function showVideoPlayer(videoName) {
+
   var sendData = {
      "channelName" : videoName
   };
+
   $.ajax({
      url: 'http://10.177.65.71:8080/server/getchannel',
      type: 'POST',
@@ -42,9 +78,15 @@ function showVideoPlayer(videoName) {
        var myVideo = document.getElementById("channel");
        $("#main source").attr("src", data.url);
        myVideo.load();
-       myVideo.play();
+       var isPlaying = myVideo.currentTime > 0 && !myVideo.paused && !myVideo.ended && myVideo.readyState > 2;
+
+      if (!isPlaying) {
+        myVideo.play();
+      }
+       // myVideo.play();
        myVideo.currentTime = data.seconds;
        $(myVideo).show();
+       myVideo.hidden = false;
        $("#main").css("z-index","100");
        $("#main").addClass("animation");
      },
@@ -63,6 +105,7 @@ function hideVideoPlayer() {
   $("#main").css("z-index", "-100");
   myVideo.pause();
   $(myVideo).hide();
+  myVideo.hidden = true;
   $("#main").removeClass("animation");
 }
 
