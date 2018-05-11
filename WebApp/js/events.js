@@ -93,7 +93,7 @@ var controller = Leap.loop(options, function(frame){
       frame.gestures.forEach(function(gesture){
         switch (gesture.type){
                   case "swipe":
-                      swipeHandler(gesture);
+                      swipeHandler(frame,gesture);
                       break;
                   case "screenTap":
                       //circleHandler(gesture);
@@ -161,6 +161,11 @@ function updateVolume(direction){
   }
 }
 
+function reset(){
+  Validator.resetLeftRightUpOrDown();             //reSetting Left or Right to 0
+  Validator.setNewGesture(true);            //Now upcoming gestures will be new gesture
+}
+
 function timerfunc(){
   var direction = Validator.getLeftRightUpOrDown();
   if(direction == "left" || direction == "right"){
@@ -169,23 +174,22 @@ function timerfunc(){
   else {
     updateVolume(direction);
   }
-  //setTimeout(reset,500);
-  Validator.resetLeftRightUpOrDown();             //reSetting Left or Right to 0
-  Validator.setNewGesture(true);            //Now upcoming gestures will be new gesture
+  setTimeout(reset,300);
 }
-function swipeHandler(gesture){
+function swipeHandler(frame,gesture){
   //Handles all swipe related events
     var isHorizontal = Math.abs(gesture.direction[0]) > Math.abs(gesture.direction[1]);
     if (isHorizontal) {
       swipeDirection = (gesture.direction[0] > 0) ?  "right" :  "left";
 
     } else {
-      swipeDirection = (gesture.direction[1] > 0) ? "up" : "down";
+      //swipeDirection = (gesture.direction[1] > 0) ? "up" : "down";
+      swipeDirection = (frame.hand(gesture.handIds[0]).palmNormal[1] > 0) ? "up" : "down";
     }
     //console.log(swipeDirection + " " + Math.floor(gesture.duration/1000000));
     if ( Validator.isNewGesture() ) {
       console.log("New Guesture");
-      setTimeout(timerfunc,500);   //millisceconds
+      setTimeout(timerfunc,300);   //millisceconds
       Validator.setNewGesture(false);     //all upcoming gestures will not be new until reset.
     }
     Validator.setLeftRightUpOrDown(swipeDirection);
