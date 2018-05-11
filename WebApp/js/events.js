@@ -97,6 +97,7 @@ var controller = Leap.loop(options, function(frame){
                       break;
                   case "screenTap":
                       //circleHandler(gesture);
+                      break;
                   case "keyTap":
                       //circleHandler(gesture);
                       break;
@@ -116,17 +117,17 @@ function handGrabHandler(grabStrength){
   // console.log(grabStrength);
   if(grabStrength == 1) {
     if(!Validator.isHistoryEmpty() && Validator.getHistoryElement(0)==0 && Validator.historySamplesLength() > 1){
-      console.log("play channel");
+      // console.log("back to pgd");
+      hideVideoPlayer();
     }
     Validator.resetHistorySample();
     Validator.addHistorySample(1);
 
     // console.log("HAND iS CLOSED");
   } else if (grabStrength == 0) {
-    if(!Validator.isHistoryEmpty() && Validator.getHistoryElement(0)==1 && Validator.historySamplesLength() > 1){
-      console.log("back to pgd");
-      hideVideoPlayer();
-    }
+    // if(!Validator.isHistoryEmpty() && Validator.getHistoryElement(0)==1 && Validator.historySamplesLength() > 1){
+    //   console.log("play channel");
+    // }
     Validator.resetHistorySample();
     Validator.addHistorySample(0);
     // console.log("HAND iS OPEN");
@@ -183,8 +184,12 @@ function swipeHandler(frame,gesture){
       swipeDirection = (gesture.direction[0] > 0) ?  "right" :  "left";
 
     } else {
-      //swipeDirection = (gesture.direction[1] > 0) ? "up" : "down";
-      swipeDirection = (frame.hand(gesture.handIds[0]).palmNormal[1] > 0) ? "up" : "down";
+      if(frame.hand(gesture.handIds[0]).hasOwnProperty("palmNormal") && frame.hand(gesture.handIds[0]).palmNormal.length >=2){
+        swipeDirection = (frame.hand(gesture.handIds[0]).palmNormal[1] > 0) ? "up" : "down";
+      }
+      else {
+        swipeDirection = (gesture.direction[1] > 0) ? "up" : "down";
+      }
     }
     //console.log(swipeDirection + " " + Math.floor(gesture.duration/1000000));
     if ( Validator.isNewGesture() ) {
@@ -200,6 +205,7 @@ function circleHandler(gesture){
     if(!isPlaying()){
     console.log("circling");
     openChannel();
+    Validator.resetHistorySample(); //TEMP CHANGE
     return;
     }
 }

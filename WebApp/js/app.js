@@ -18,24 +18,24 @@ function showSnackbar(str,time) {
 function volumeUp(){
 
   var vid = document.getElementById("channel");
-  if(vid.volume <= 0.9){
-    vid.volume = (vid.volume + 0.1);
+  if(vid.volume <= 0.8){
+    vid.volume = (vid.volume + 0.2);
   }else{
     vid.volume = 1;
   }
-  showSnackbar("Volume : "+Math.ceil(vid.volume*100)+"%" ,3000);
+  showSnackbar("Volume : "+Math.floor(vid.volume*100)+"%" ,3000);
 
 }
 
 function volumeDown(){
   var vid = document.getElementById("channel");
-  console.log(vid.volume);
-  if(vid.volume >= 0.1){
-    vid.volume = (vid.volume - 0.1);
+  // console.log(vid.volume);
+  if(vid.volume >= 0.2){
+    vid.volume = (vid.volume - 0.2);
   }else{
     vid.volume = 0.0;
   }
-  showSnackbar("Volume : "+Math.ceil(vid.volume*100)+"%" ,3000);
+  showSnackbar("Volume : "+Math.floor(vid.volume*100)+"%" ,3000);
 }
 
 function isPlaying(){
